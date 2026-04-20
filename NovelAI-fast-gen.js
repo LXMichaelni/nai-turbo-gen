@@ -50,6 +50,30 @@
     timerWorker.postMessage({ id, ms });
   });
 
+  // ========= 429 Rate Limited 检测（MutationObserver 被动监听）=========
+  // NovelAI 的错误提示是类似 toast 的弹窗，动态插入 DOM 后自动消失。
+  // 用 MutationObserver 监听新增节点，匹配 "429" + "Rate limited" 文本。
+  // 仅检测速率限流（429 Rate limited），不匹配其他类型的 429。
+  let isRateLimited = false;
+
+  function initRateLimitDetector() {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          const text = node.textContent || '';
+          // 必须同时包含 429 和 Rate limited
+          if (text.includes('429') && text.includes('Rate limited')) {
+            isRateLimited = true;
+            setStatus('⚠️ 429 Rate Limited（速率限流）', 'error');
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   // ========= 核心：找按钮 =========
   function findGenerateButton() {
     // NovelAI 页面按钮文字一般以 Generate 开头
@@ -262,6 +286,7 @@
       if (findGenerateButton()) {
         clearInterval(itv);
         createUI();
+        initRateLimitDetector();
         setStatus('等待（检测到 Generate 按钮）', 'info');
       }
     }, 500);
