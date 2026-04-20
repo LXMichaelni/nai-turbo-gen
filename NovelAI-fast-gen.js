@@ -18,8 +18,37 @@
   const GENERATION_TIMEOUT_MS = 120000; // 单次生成最长等待（ms）；超时会继续轮询
   const DEFAULT_POS = { top: 70, left: null }; // left 为 null 时按视口宽度计算默认值
 
+  // ========= Web Worker 计时器（绕过后台标签页节流）=========
+  // 浏览器对后台标签页的 setTimeout 会节流到 1s 甚至 60s，
+  // 但 Web Worker 内的 setTimeout 不受此限制。
+  const workerBlob = new Blob([`
+    self.onmessage = function(e) {
+      const { id, ms } = e.data;
+      setTimeout(() => self.postMessage({ id }), ms);
+    };
+  `], { type: 'application/javascript' });
+  const workerUrl = URL.createObjectURL(workerBlob);
+  const timerWorker = new Worker(workerUrl);
+
+  // 用递增 ID 管理多个并发 sleep
+  let _sleepId = 0;
+  const _sleepCallbacks = new Map();
+
+  timerWorker.onmessage = (e) => {
+    const cb = _sleepCallbacks.get(e.data.id);
+    if (cb) {
+      _sleepCallbacks.delete(e.data.id);
+      cb();
+    }
+  };
+
   // ========= 工具 =========
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  /** 不受后台节流影响的 sleep */
+  const sleep = (ms) => new Promise((resolve) => {
+    const id = ++_sleepId;
+    _sleepCallbacks.set(id, resolve);
+    timerWorker.postMessage({ id, ms });
+  });
 
   // ========= 核心：找按钮 =========
   function findGenerateButton() {
