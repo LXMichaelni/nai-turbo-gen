@@ -1,0 +1,16 @@
+# AI agent working files
+.ai/
+.agents/
+.claude/
+skills-lock.json
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
