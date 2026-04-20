@@ -6,6 +6,8 @@
 // @author       vvd
 // @match        https://novelai.net/image
 // @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 (function () {
@@ -14,8 +16,7 @@
   // ========= 配置 =========
   const POLL_INTERVAL_MS = 80;     // 轮询间隔（越小越快，但太小会卡；50-120ms比较稳）
   const GENERATION_TIMEOUT_MS = 120000; // 单次生成最长等待（ms）；超时会继续轮询
-  const UI_TOP = '70px';
-  const UI_RIGHT = '25px';
+  const DEFAULT_POS = { top: 70, left: null }; // left 为 null 时按视口宽度计算默认值
 
   // ========= 工具 =========
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -113,10 +114,76 @@
     `;
     document.body.appendChild(panel);
 
+    // 读取持久化位置，无则使用默认值（right:25px 等价的 left）
+    const panelWidth = 220; // 与 CSS 中 width 一致
+    const defaultLeft = window.innerWidth - panelWidth - 25;
+    const savedPos = GM_getValue('nai_panel_pos', null);
+    const pos = savedPos || { top: DEFAULT_POS.top, left: defaultLeft };
+
+    // 边界修正（防止保存的位置在当前视口外）
+    pos.top = clampTop(pos.top, panel);
+    pos.left = clampLeft(pos.left, panel);
+
+    panel.style.top = pos.top + 'px';
+    panel.style.left = pos.left + 'px';
+
+    // 绑定拖拽
+    initDrag(panel);
+
     const toggle = panel.querySelector('#nai-fast-toggle');
     toggle.addEventListener('click', () => {
       if (isPolling) stopPolling();
       else startPolling();
+    });
+  }
+
+  // ========= 拖拽逻辑 =========
+  /** 限制 top 不超出视口 */
+  function clampTop(top, panel) {
+    const maxTop = window.innerHeight - (panel.offsetHeight || 120);
+    return Math.max(0, Math.min(top, maxTop));
+  }
+
+  /** 限制 left 不超出视口 */
+  function clampLeft(left, panel) {
+    const maxLeft = window.innerWidth - (panel.offsetWidth || 220);
+    return Math.max(0, Math.min(left, maxLeft));
+  }
+
+  function initDrag(panel) {
+    const titleBar = panel.querySelector('.title');
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    titleBar.addEventListener('mousedown', (e) => {
+      // 仅左键触发拖拽
+      if (e.button !== 0) return;
+      isDragging = true;
+      offsetX = e.clientX - panel.offsetLeft;
+      offsetY = e.clientY - panel.offsetTop;
+      // 拖拽期间禁止文本选中
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const newLeft = clampLeft(e.clientX - offsetX, panel);
+      const newTop = clampTop(e.clientY - offsetY, panel);
+      panel.style.left = newLeft + 'px';
+      panel.style.top = newTop + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.body.style.userSelect = '';
+      // 持久化当前位置
+      GM_setValue('nai_panel_pos', {
+        top: parseInt(panel.style.top, 10),
+        left: parseInt(panel.style.left, 10),
+      });
     });
   }
 
@@ -136,8 +203,7 @@
 
   GM_addStyle(`
     #nai-fast-poll-panel{
-      position:fixed; top:${UI_TOP}; right:${UI_RIGHT};
-      z-index:99999; width:220px;
+      position:fixed; z-index:99999; width:220px;
       background:#1c1f26; color:#c8ccd4;
       border:1px solid #3a414f; border-radius:12px;
       font-family:sans-serif; padding:12px;
@@ -146,6 +212,7 @@
     #nai-fast-poll-panel .title{
       font-weight:700; color:#82aaff; font-size:14px;
       border-bottom:1px solid #3a414f; padding-bottom:8px;
+      cursor:move; /* 提示可拖拽 */
     }
     #nai-fast-toggle{
       background:#82aaff; color:#fff; font-weight:700;
