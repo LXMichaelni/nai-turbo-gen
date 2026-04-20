@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         NovelAI 极速轮询点击生图按钮
+// @name         NovelAI 极速轮询点击生图按钮 v2
 // @namespace    http://tampermonkey.net/
 // @version      0.1.0
 // @description  在 https://novelai.net/image 页面极速轮询检测 Generate（生图）按钮：一旦可点立刻点击，等待生成结束后继续下一轮。无随机等待，最大化点击速率。
