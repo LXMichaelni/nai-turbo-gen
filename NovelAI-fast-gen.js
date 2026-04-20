@@ -55,6 +55,18 @@
   // 用 MutationObserver 监听新增节点，匹配 "429" + "Rate limited" 文本。
   // 仅检测速率限流（429 Rate limited），不匹配其他类型的 429。
   let isRateLimited = false;
+  let rateLimitCount = 0;
+
+  function updateRateLimitDisplay() {
+    const el = document.getElementById('nai-fast-ratelimit');
+    if (!el) return;
+    if (rateLimitCount > 0) {
+      el.textContent = `⚠️ 429 Rate Limited ×${rateLimitCount}`;
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  }
 
   function initRateLimitDetector() {
     const observer = new MutationObserver((mutations) => {
@@ -65,7 +77,8 @@
           // 必须同时包含 429 和 Rate limited
           if (text.includes('429') && text.includes('Rate limited')) {
             isRateLimited = true;
-            setStatus('⚠️ 429 Rate Limited（速率限流）', 'error');
+            rateLimitCount++;
+            updateRateLimitDisplay();
           }
         }
       }
@@ -163,6 +176,7 @@
     panel.innerHTML = `
       <div class="title">极速生图轮询</div>
       <button id="nai-fast-toggle">▶️ 开始</button>
+      <div id="nai-fast-ratelimit" style="display:none"></div>
       <div id="nai-fast-status">状态：等待</div>
     `;
     document.body.appendChild(panel);
@@ -278,6 +292,11 @@
       border-radius:8px; text-align:center;
     }
     #nai-fast-status.error{ color:#e06c75; border:1px solid #e06c75; }
+    #nai-fast-ratelimit{
+      font-size:12px; padding:6px 8px; background:#3d2020;
+      border:1px solid #e06c75; border-radius:8px;
+      color:#e06c75; font-weight:700; text-align:center;
+    }
   `);
 
   // ========= 初始化：等页面出现 Generate 按钮再挂 UI =========
