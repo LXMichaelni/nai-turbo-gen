@@ -1,63 +1,66 @@
 # nai-turbo-gen
 
-> Tampermonkey userscript that auto-clicks the **Generate** button on [NovelAI Image](https://novelai.net/image) at maximum speed — zero cooldown between generations.
+> Single-file Tampermonkey userscript for [NovelAI Image](https://novelai.net/image) that auto-clicks **Generate** with near-zero idle time between runs.
 
 ## Features
 
-- **Instant polling** — detects the Generate button becoming clickable within ~80ms
-- **Zero cooldown** — clicks immediately after the previous generation completes, no random wait
-- **Two-phase state machine** — reliably waits for generation to start *and* finish before the next click
-- **Timeout protection** — 120s per-generation timeout prevents infinite hangs
-- **Minimal floating UI** — dark-themed control panel with start/stop toggle and live status
-- **Error resilience** — catches exceptions and continues polling automatically
+- **Fast Generate polling** — checks the page frequently and clicks Generate as soon as it becomes available
+- **Two-phase wait logic** — waits for generation to actually start, then waits for it to finish before the next click
+- **Floating control panel** — start/stop toggle, live status, and recent 429 logs
+- **Raw 429 response capture** — records the original `fetch` 429 response body when available
+- **DOM text monitoring** — also watches page text for `429` / `limit` messages and logs the raw text
+- **Background-tab friendly timing** — uses a Web Worker timer to reduce throttling impact
+- **Web Audio keep-alive** — initializes a silent audio context to help keep polling responsive in background tabs
+- **Draggable panel with saved position** — panel position is persisted with Tampermonkey storage
 
 ## Installation
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/) (Chrome / Edge / Firefox)
-2. Create a new userscript and paste the contents of [`NovelAI-fast-gen.js`](./NovelAI-fast-gen.js)
-3. Navigate to <https://novelai.net/image>
-4. The floating panel appears once the Generate button is detected
+1. Install [Tampermonkey](https://www.tampermonkey.net/)
+2. Create a new userscript
+3. Paste the contents of [`NovelAI-fast-gen.js`](./NovelAI-fast-gen.js)
+4. Open <https://novelai.net/image>
+5. Wait for the floating panel to appear after the page detects the **Generate** button
 
 ## Usage
 
 | Action | Effect |
 |--------|--------|
-| Click **▶️ Start** | Begin auto-generation loop |
-| Click **⏹️ Stop** | Gracefully stop after current generation |
+| Click **Start** | Begin the polling loop |
+| Click **Stop** | Stop the loop after the current wait cycle |
 
-The status bar shows real-time state: waiting, running, errors, or stopped.
+The panel shows the current status and, when rate limiting is detected, the latest raw 429-related messages.
 
 ## Configuration
 
-Edit the constants at the top of the script:
+Edit the constants near the top of the script:
 
 ```javascript
-const POLL_INTERVAL_MS = 80;          // Polling interval (ms) — lower = faster, 50-120 recommended
-const GENERATION_TIMEOUT_MS = 120000; // Max wait per generation (ms)
-const UI_TOP = '70px';                // Panel position from top
-const UI_RIGHT = '25px';             // Panel position from right
+const POLL_INTERVAL_MS = 80;
+const GENERATION_TIMEOUT_MS = 60000;
+const DEFAULT_POS = { top: 70, left: null };
 ```
+
+Notes:
+
+- `POLL_INTERVAL_MS` controls the main polling interval
+- `GENERATION_TIMEOUT_MS` sets the maximum wait time for one generation cycle
+- `DEFAULT_POS` is only the fallback panel position; after you drag the panel, the saved position in Tampermonkey storage is used instead
 
 ## How It Works
 
-```
-┌─────────────────────────────────────────────────┐
-│                  Polling Loop                     │
-│                                                   │
-│  1. Find Generate button (querySelectorAll)       │
-│  2. Check if busy (disabled / "cancelling")       │
-│  3. If ready → click immediately                  │
-│  4. Wait for generation to complete:              │
-│     Phase 1: button becomes disabled (started)    │
-│     Phase 2: button re-enables (finished)         │
-│  5. Loop back to step 1 — no delay               │
-└─────────────────────────────────────────────────┘
-```
+1. Find the **Generate** button on the NovelAI Image page
+2. Wait until the button is clickable
+3. Click immediately
+4. Wait for generation to start
+5. Wait for generation to finish
+6. Repeat without adding an extra cooldown
+
+At the same time, the script monitors both network responses and page text so recent 429 / limit messages can be shown in the panel.
 
 ## Requirements
 
-- Tampermonkey (or compatible userscript manager)
-- Active NovelAI subscription with image generation access
+- Tampermonkey or a compatible userscript manager
+- Access to NovelAI Image generation
 
 ## License
 
