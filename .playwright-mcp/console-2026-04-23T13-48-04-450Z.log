@@ -1,0 +1,26 @@
+[    3755ms] [WARNING] The resource https://novelai.net/_next/static/chunks/8857-80a6fef790ef2644.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/7538-1e5cf0a235a22355.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/2175-fca27a0ee3f80b8a.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/336958c-production/_buildManifest.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/4956-3de3309a5f396e77.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/1498-f41452c31a188607.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/6546-db6bc4fdbbb27c7d.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/2588-bb5ce09b5a892012.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/4266-d5b530787060af31.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/chunks/4767-e4158df96e5ab0b2.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    3756ms] [WARNING] The resource https://novelai.net/_next/static/336958c-production/_ssgManifest.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://novelai.net/image:0
+[    5933ms] [ERROR] Not signed in with the identity provider. @ https://novelai.net/image:0
+[    5953ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with AbortError: signal is aborted without reason @ https://novelai.net/_next/static/chunks/3905-6fede55c14b3494a.js:20
+[   15160ms] [INFO] Set(1) Clearing indexedDB images not belonging to a tab. @ https://novelai.net/_next/static/chunks/pages/_app-f6b97b2adeb63385.js:276
+[  275547ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.novelai.net/:0
+[  275547ms] [ERROR] online check unsuccessful TypeError: Failed to fetch
+    at n (https://novelai.net/_next/static/chunks/pages/_app-f6b97b2adeb63385.js:322:522595)
+    at https://novelai.net/_next/static/chunks/8857-80a6fef790ef2644.js:1:9408 @ https://novelai.net/_next/static/chunks/3905-6fede55c14b3494a.js:20
+[  275596ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://novelai.net/updateReload.json:0
+[  275596ms] [ERROR] failed to check for updates TypeError: Failed to fetch
+    at u (https://novelai.net/_next/static/chunks/pages/_app-f6b97b2adeb63385.js:321:121866)
+    at r (https://novelai.net/_next/static/chunks/pages/_app-f6b97b2adeb63385.js:321:122306) @ https://novelai.net/_next/static/chunks/3905-6fede55c14b3494a.js:20
+[  275639ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://static.novelai.net/status:0
+[  275639ms] [ERROR] status check unsuccessful TypeError: Failed to fetch
+    at n (https://novelai.net/_next/static/chunks/pages/_app-f6b97b2adeb63385.js:322:522595)
+    at e (https://novelai.net/_next/static/chunks/8857-80a6fef790ef2644.js:1:9652) @ https://novelai.net/_next/static/chunks/3905-6fede55c14b3494a.js:20

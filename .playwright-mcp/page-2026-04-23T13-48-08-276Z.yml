@@ -1,0 +1,8 @@
+- dialog "Cookie Consent Banner" [ref=e7]:
+  - button "Close this dialog" [active] [ref=e8] [cursor=pointer]:
+    - img "Close this dialog" [ref=e9]
+  - generic [ref=e10]:
+    - generic [ref=e11]: "This website utilizes technologies such as cookies to enable essential site functionality, as well as for analytics, personalization, and targeted advertising. To learn more, view the following link:"
+    - link "Privacy Policy" [ref=e12] [cursor=pointer]:
+      - /url: /terms
+  - button "Manage Preferences" [ref=e14] [cursor=pointer]
