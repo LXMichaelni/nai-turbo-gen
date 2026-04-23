@@ -50,8 +50,7 @@ export interface FastPollerBridge {
 export const FAST_POLLER_BRIDGE_KEY = '__NAI_FAST_POLLER_BRIDGE__';
 export const FAST_POLLER_STATE_EVENT = 'nai-fast-poller:state';
 export const FAST_POLLER_LOGS_EVENT = 'nai-fast-poller:logs';
-
-const DISCONNECTED_STATUS = '脚本未接入 / Bridge Disconnected';
+export const DISCONNECTED_STATUS = '脚本未接入 / Bridge Disconnected';
 
 const ENGINE_PHASE_ALLOWLIST: readonly EnginePhase[] = [
   'BOOTING',

@@ -24,9 +24,9 @@
   const BRIDGE_LOGS_EVENT = 'nai-fast-poller:logs';
   const REACT_READY_EVENT = 'nai-fast-poller:react-ready';
   const REACT_PANEL_HOST_ID = 'nai-fast-poller-react-host';
-  // 默认禁用开发态 React 注入，避免在真实站点页面自动执行本机 3000 端口代码。
-  const REACT_DEV_PANEL_ENABLED = false;
-  const REACT_DEV_SERVER_ORIGIN = 'http://127.0.0.1:3000';
+  // 当前先启用开发态 React 内嵌，优先供本地 dev server 手测。
+  const REACT_DEV_PANEL_ENABLED = true;
+  const REACT_DEV_SERVER_ORIGIN = 'http://127.0.0.1:3001';
   const REACT_DEV_CLIENT_PATH = '/@vite/client';
   const REACT_DEV_ENTRY_PATH = '/src/main.tsx';
   const REACT_DEV_BOOT_TIMEOUT_MS = 1500;
@@ -173,6 +173,7 @@
   let reactPanelBootState = 'idle';
   let reactPanelBootPromise = null;
   let reactPanelBootStartedAt = 0;
+  let reactPanelLastFailureAt = 0;
   let reactReadyListenerAttached = false;
   let resolveReactReady = null;
 
@@ -190,6 +191,18 @@
     }
 
     return hasReactBootTimedOut();
+  }
+
+  function removeInjectedModuleScript(scriptId) {
+    const script = document.getElementById(scriptId);
+    if (script) {
+      script.remove();
+    }
+  }
+
+  function resetReactInjectedScripts() {
+    removeInjectedModuleScript(REACT_DEV_ENTRY_SCRIPT_ID);
+    removeInjectedModuleScript(REACT_DEV_CLIENT_SCRIPT_ID);
   }
 
   function getLegacyPanelElement() {
@@ -234,11 +247,19 @@
     }
 
     if (nextState === 'ready') {
+      reactPanelBootStartedAt = 0;
+      reactPanelLastFailureAt = 0;
       hideLegacyPanel();
       return;
     }
 
-    if (nextState === 'disabled' || nextState === 'failed' || nextState === 'fallback') {
+    if (nextState === 'disabled') {
+      showLegacyPanel();
+      return;
+    }
+
+    if (nextState === 'failed' || nextState === 'fallback') {
+      reactPanelLastFailureAt = Date.now();
       showLegacyPanel();
     }
   }
@@ -255,13 +276,13 @@
       }
 
       if (failed) {
-        onError();
+        script.remove();
+        script = null;
+      } else {
+        script.addEventListener('load', onLoad, { once: true });
+        script.addEventListener('error', onError, { once: true });
         return script;
       }
-
-      script.addEventListener('load', onLoad, { once: true });
-      script.addEventListener('error', onError, { once: true });
-      return script;
     }
 
     script = document.createElement('script');
@@ -299,12 +320,16 @@
       return Promise.resolve('ready');
     }
 
-    if (reactPanelBootState === 'disabled' || reactPanelBootState === 'failed' || reactPanelBootState === 'fallback') {
-      return Promise.resolve(reactPanelBootState);
+    if (reactPanelBootState === 'disabled') {
+      return Promise.resolve('disabled');
     }
 
     if (reactPanelBootPromise) {
       return reactPanelBootPromise;
+    }
+
+    if (reactPanelBootState === 'failed' || reactPanelBootState === 'fallback') {
+      resetReactInjectedScripts();
     }
 
     setReactPanelBootState('booting');
@@ -355,20 +380,47 @@
 
   function renderStatus(text, type = 'info') {
     const el = document.getElementById('nai-fast-status');
-    if (el) {
-      el.textContent = `状态：${text}`;
+    if (!el) {
+      return false;
+    }
+
+    const nextText = `状态：${text}`;
+    const didTextChange = el.textContent !== nextText;
+    const didTypeChange = el.className !== type;
+
+    if (didTextChange) {
+      el.textContent = nextText;
+    }
+
+    if (didTypeChange) {
       el.className = type;
     }
+
+    return didTextChange || didTypeChange;
   }
 
-  function setRuntimeState({ phase, statusText, statusType = 'info', lastError = null }) {
-    renderStatus(statusText, statusType);
+  function hasSameRuntimeState({ phase, statusText, statusType = 'info', lastError = null }) {
+    return bridgeSnapshot.phase === phase
+      && bridgeSnapshot.statusText === statusText
+      && bridgeSnapshot.statusType === statusType
+      && bridgeSnapshot.lastError === lastError;
+  }
+
+  function setRuntimeState(nextState) {
+    renderStatus(nextState.statusText, nextState.statusType);
+
+    if (hasSameRuntimeState(nextState)) {
+      return false;
+    }
+
     setSnapshot({
-      phase,
-      statusText,
-      statusType,
-      lastError,
+      phase: nextState.phase,
+      statusText: nextState.statusText,
+      statusType: nextState.statusType ?? 'info',
+      lastError: nextState.lastError ?? null,
     });
+
+    return true;
   }
 
   function legacyAddRawLog(content) {
@@ -564,7 +616,7 @@
   }
 
   async function waitForGeneration() {
-    const interval = 100;
+    const interval = POLL_INTERVAL_MS;
     const timeout = GENERATION_TIMEOUT_MS;
     let elapsed = 0;
     let hasStarted = false;
@@ -580,14 +632,12 @@
       }
 
       const busy = isGenerateBusy(btn);
-      if (!hasStarted) {
-        if (bridgeSnapshot.phase !== 'STOPPING') {
-          setRuntimeState({
-            phase: 'WAITING_START',
-            statusText: '等待生成开始...',
-            statusType: 'info',
-          });
-        }
+      if (!hasStarted && bridgeSnapshot.phase !== 'STOPPING') {
+        setRuntimeState({
+          phase: 'WAITING_START',
+          statusText: '等待生成开始...',
+          statusType: 'info',
+        });
       }
 
       if (busy) {
@@ -873,25 +923,33 @@
     let ox = 0;
     let oy = 0;
 
+    const stopDragging = () => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      GM_setValue('nai_panel_pos', { top: panel.offsetTop, left: panel.offsetLeft });
+    };
+
+    const handleMouseMove = (e) => {
+      if (!dragging) return;
+      panel.style.left = e.clientX - ox + 'px';
+      panel.style.top = e.clientY - oy + 'px';
+    };
+
+    const handleMouseUp = () => {
+      stopDragging();
+    };
+
     titleBar.onmousedown = (e) => {
       if (e.button !== 0) return;
       dragging = true;
       ox = e.clientX - panel.offsetLeft;
       oy = e.clientY - panel.offsetTop;
       document.body.style.userSelect = 'none';
-    };
-
-    document.onmousemove = (e) => {
-      if (!dragging) return;
-      panel.style.left = e.clientX - ox + 'px';
-      panel.style.top = e.clientY - oy + 'px';
-    };
-
-    document.onmouseup = () => {
-      if (!dragging) return;
-      dragging = false;
-      document.body.style.userSelect = '';
-      GM_setValue('nai_panel_pos', { top: panel.offsetTop, left: panel.offsetLeft });
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     };
   }
 
@@ -928,10 +986,6 @@
     setInterval(() => {
       const btn = refreshIdleBridgeState();
 
-      if (!btn) {
-        return;
-      }
-
       ensureReactPanelBoot();
 
       if (shouldShowLegacyPanelFallback()) {
@@ -940,7 +994,7 @@
         hideLegacyPanel();
       }
 
-      if (!observerStarted) {
+      if (btn && !observerStarted) {
         observerStarted = true;
         initGlobalObserver();
       }

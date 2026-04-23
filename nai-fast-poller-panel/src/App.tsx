@@ -18,6 +18,7 @@ import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
 import {
   clearEngineLogs,
+  DISCONNECTED_STATUS,
   getEngineSnapshot,
   isBridgeConnected,
   startEnginePolling,
@@ -26,7 +27,19 @@ import {
   type EngineLogEntry,
 } from '@/src/bridge/engine';
 
-const DISCONNECTED_STATUS = '脚本未接入 / Bridge Disconnected';
+type TelemetryTone = 'emerald' | 'slate' | 'amber' | 'sky' | 'red';
+
+const TELEMETRY_VALUE_CLASS: Record<TelemetryTone, string> = {
+  emerald: 'text-emerald-500/80',
+  slate: 'text-slate-500/80',
+  amber: 'text-amber-500/80',
+  sky: 'text-sky-500/80',
+  red: 'text-red-500/80',
+};
+
+function getTelemetryValueClass(value: number | '--', color: TelemetryTone): string {
+  return value === '--' ? 'text-slate-600' : TELEMETRY_VALUE_CLASS[color];
+}
 
 function getLogColor(type: EngineLogEntry['type']) {
   switch (type) {
@@ -399,17 +412,17 @@ export default function App({ embedded = false }: AppProps) {
           >
             <div className="flex flex-col h-full justify-between">
               <div className="grid grid-cols-1 gap-2">
-                {[
+                {([
                   { label: t('Successful Gen', '成功生成'), value: engine.counts.success, color: 'emerald' },
                   { label: t('Access Denied (403)', '访问拒绝 (403)'), value: '--', color: 'slate' },
                   { label: t('Rate Limited (429)', '触发限流 (429)'), value: engine.counts.c429, color: 'amber' },
                   { label: t('Server Error (503)', '服务器错误 (503)'), value: '--', color: 'slate' },
                   { label: t('DOM Intercepts', 'DOM 拦截'), value: engine.counts.dom, color: 'sky' },
                   { label: t('IO Exceptions', 'IO 异常'), value: engine.counts.err, color: 'red' },
-                ].map((item) => (
+                ] satisfies Array<{ label: string; value: number | '--'; color: TelemetryTone }>).map((item) => (
                   <div key={item.label} className="group flex justify-between items-center px-4 py-2 bg-slate-900/30 border border-slate-800/50 rounded-lg hover:bg-slate-900/80 hover:border-slate-700 transition-all">
                     <span className="text-[10px] text-slate-500 group-hover:text-slate-400 font-black uppercase tracking-tight">{item.label}</span>
-                    <span className={`font-mono font-black ${item.value === '--' ? 'text-slate-600' : `text-${item.color}-500/80`}`}>{item.value}</span>
+                    <span className={`font-mono font-black ${getTelemetryValueClass(item.value, item.color)}`}>{item.value}</span>
                   </div>
                 ))}
               </div>
