@@ -1,0 +1,6 @@
+{
+  "name": "NAI Fast Poller Panel",
+  "description": "A high-performance control panel for monitoring and managing NAI generation tasks with real-time logging and parameter tuning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

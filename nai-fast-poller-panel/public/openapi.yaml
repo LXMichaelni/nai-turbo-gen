@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: NAI Fast Poller API
+  description: API specifications for the generation engine, telemetry, and configuration management.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Alpha Protocol API Server
+paths:
+  /task/start:
+    post:
+      summary: Initialize Generation Task
+      operationId: startTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                burstCount:
+                  type: integer
+                  example: 12
+                batchSize:
+                  type: integer
+                  example: 5
+                targetLayer:
+                  type: string
+                  enum: [system, character]
+                slot:
+                  type: string
+                  example: "[替换位]"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["TagA", "TagB"]
+      responses:
+        '200':
+          description: Task successfully queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                    example: "tsk_98sa9d8f9"
+  /task/stop:
+    post:
+      summary: Terminate Generation Task
+      operationId: stopTask
+      responses:
+        '200':
+          description: Task successfully halted
+  /task/status:
+    get:
+      summary: Poll Telemetry and Logs
+      operationId: getStatus
+      parameters:
+        - name: lastLogId
+          in: query
+          schema:
+            type: string
+          description: Ensure incremental log fetching
+      responses:
+        '200':
+          description: Realtime status and counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phase:
+                    type: string
+                    example: "GENERATING"
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        time:
+                          type: string
+                        type:
+                          type: string
+                        message:
+                          type: string
+                  counts:
+                    type: object
+                    properties:
+                      success:
+                        type: integer
+                      c403:
+                        type: integer
+                      c429:
+                        type: integer
+                      c503:
+                        type: integer
+                      dom:
+                        type: integer
+                      err:
+                        type: integer
+  /config/save:
+    post:
+      summary: Archive Configuration
+      operationId: saveConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Configuration successfully archived

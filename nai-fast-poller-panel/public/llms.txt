@@ -1,0 +1,20 @@
+# NAI FAST POLLER - LLM & Agent Integration Context
+
+This file serves as a machine-readable entry point for external AI agents, LLM web crawlers, or Copilot features to quickly understand the project's data structures and API interfaces.
+
+## Project Overview
+This application is a highly responsive dashboard (Frontend) for polling, managing, and observing image generation tasks or batch processing requests via a control center aesthetic. 
+
+## API Endpoints (Available to connect via Backend)
+The application expects a backend that conforms to the OpenAPI 3.0 specification found at `/openapi.yaml`.
+
+Key operations:
+- `POST /api/v1/task/start` : Pass Burst count, Tag pools, and Target parameters to spin up tasks.
+- `POST /api/v1/task/stop` : Terminate current loop.
+- `GET /api/v1/task/status` : Long-polling or short-polling telemetry endpoint returning incremented logs array and status counts.
+- `POST /api/v1/config/save` : Save configuration JSON dump.
+
+## Agent Introspection
+To perform a complete analysis or generate client/server SDK code for this frontend, instruct the agent to fetch `[BASE_URL]/openapi.yaml`.
+
+*Generated for AI Interoperability protocols.*

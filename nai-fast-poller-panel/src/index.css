@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Times New Roman", "Adobe Heiti Std", "Adobe Songti Std", "Noto Sans CJK SC", "SimSun", serif;
+  --font-mono: "JetBrains Mono", "Times New Roman", "Adobe Heiti Std", ui-monospace, SFMono-Regular, monospace;
+
+  --color-panel-bg: #0f172a;
+  --color-panel-border: #1e293b;
+  --color-panel-header: #1e293b;
+}
+
+@layer base {
+  body.nai-fast-poller-standalone {
+    @apply bg-slate-950 text-slate-200 antialiased font-sans;
+  }
+
+  .nai-fast-poller-app-root {
+    @apply text-slate-200 antialiased font-sans;
+  }
+
+  .nai-fast-poller-embedded-host {
+    width: min(calc(100vw - 48px), 80rem);
+    max-width: calc(100vw - 48px);
+  }
+
+  /* Precision Daytime/Clinical Aesthetic Mode */
+  .theme-light {
+    /* Base Architectures: Clean White Workstation */
+    --color-slate-950: #f1f5f9; /* Outer app bg - soft slate-100 for better bento contrast */
+    --color-slate-900: #ffffff; /* Main Cards - pure white */
+    
+    /* Structural Lines */
+    --color-slate-800: #e2e8f0; /* Borders - slate-200 */
+    --color-slate-700: #cbd5e1; /* Strong borders/active - slate-300 */
+    --color-slate-600: #94a3b8; /* Muted icons/lines - slate-400 */
+    
+    /* Typography */
+    --color-slate-500: #64748b; /* Mid text - slate-500 */
+    --color-slate-400: #475569; /* Emphasized text - slate-600 */
+    --color-slate-300: #334155; /* Headings - slate-700 */
+    --color-slate-200: #1e293b; /* Primary text - slate-800 */
+    --color-slate-100: #0f172a; /* Deep text - slate-900 */
+    --color-slate-50:  #020617; /* Blackish - slate-950 */
+
+    /* Accents: Shifted down to maintain high contrast ratio on white */
+    --color-emerald-400: #059669; /* Darkened to emerald-600 for text */
+    --color-emerald-500: #059669; /* Darkened to emerald-600 for structural elements */
+    --color-emerald-600: #10b981; /* Shifted to emerald-500 for invert hover dynamics */
+
+    --color-amber-400: #d97706; /* amber-600 */
+    --color-amber-500: #d97706; /* amber-600 */
+    --color-amber-600: #f59e0b; /* amber-500 */
+
+    --color-rose-400: #e11d48; /* rose-600 */
+    --color-rose-500: #e11d48; /* rose-600 */
+    --color-rose-600: #f43f5e; /* rose-500 */
+
+    --color-red-400: #dc2626; /* red-600 */
+    --color-red-500: #dc2626; /* red-600 */
+    --color-red-600: #ef4444; /* red-500 */
+
+    --color-sky-400: #0284c7; /* sky-600 */
+    --color-sky-500: #0284c7; /* sky-600 */
+    --color-sky-600: #0ea5e9; /* sky-500 */
+  }
+}
+
+/* Custom scrollbar for that technical feel */
+.nai-fast-poller-app-root ::-webkit-scrollbar,
+body.nai-fast-poller-standalone ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.nai-fast-poller-app-root ::-webkit-scrollbar-track,
+body.nai-fast-poller-standalone ::-webkit-scrollbar-track {
+  @apply bg-slate-900;
+}
+
+.nai-fast-poller-app-root ::-webkit-scrollbar-thumb,
+body.nai-fast-poller-standalone ::-webkit-scrollbar-thumb {
+  @apply bg-slate-700 rounded-full hover:bg-slate-600;
+}
+
+/* Scrollbars react to light mode automatically via theme overrides if mapped, but forced here for safety */
+.nai-fast-poller-app-root .theme-light ::-webkit-scrollbar-track {
+  background-color: #f1f5f9;
+}
+.nai-fast-poller-app-root .theme-light ::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+}
+.nai-fast-poller-app-root .theme-light ::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
